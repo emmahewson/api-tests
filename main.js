@@ -1,8 +1,8 @@
-const baseURL = "https://ci-swapi.herokuapp.com/api/";
+
 
 // sets a callback function over the whole code
 // cb is the function that will be passed to the function below
-function getData(type, cb) {
+function getData(url, cb) {
     // declaring variable which contains an XMLHttpRequest object
     // XML similar to HTML
     var xhr = new XMLHttpRequest();
@@ -10,7 +10,7 @@ function getData(type, cb) {
     // .open method on XMLHttpRequest object
     // GET retrieves data from the server
     // 2nd argument is the URL we want to 'get' (declared above) + the rest of the URL as string concat.
-    xhr.open("GET", baseURL + type + "/");
+    xhr.open("GET", url);
     // Sends the request to the server
     xhr.send();
 
@@ -46,14 +46,30 @@ function getTableHeaders(obj) {
     return `<tr>${tableHeaders}</tr>`
 }
 
+function generatePaginationButtons(next, prev) {
+    if (next && prev) {
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>
+                <button onclick="writeToDocument('${next}')">Next</button>`;
+    } else if (next && !prev) {
+        return `<button onclick="writeToDocument('${next}')">Next</button>`;
+    } else if (!next && prev) {
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>`;
+    }
+}
+
 // type is the type of data from the API - in this case 'people' 'starships' etc
 // the type is sent from the button to the setData function, added to the URL and 
-function writeToDocument(type) {
+function writeToDocument(url) {
     var tableRows = [];
     var el = document.getElementById("data");
     el.innerHTML = "";
 
-    getData(type, function (data) {
+    getData(url, function (data) {
+
+        if (data.next || data.previous) {
+            var pagination;
+            pagination = generatePaginationButtons(data.next, data.previous)
+        }
         data = data.results;
         var tableHeaders = getTableHeaders(data[0]);
 
@@ -66,6 +82,6 @@ function writeToDocument(type) {
             });
             tableRows.push(`<tr>${dataRow}</tr>`);
         });
-        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>`;
+        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`;
     });
 };
